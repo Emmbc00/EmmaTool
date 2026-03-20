@@ -21,20 +21,25 @@ public class SaveManager {
 	String template; // this string holds the text of the template file
 	boolean moreInfo = true; //because why not, toggle if u want the console to spam you with info or not (kinda useless)
 	List<String> headerNames = new ArrayList<String>(); //this holds the names of each header
-	List<Integer> headerPos = new ArrayList<Integer>();
+	List<Integer> headerPos = new ArrayList<Integer>();//this holds positions for each header
+	//these are going to hold the current selections
+	List<String> selectedContents = new ArrayList<String>();
+	int selectedHeader;
 	
-	//{"#PLAYERNAME", "#MATERIALS", "#PLACEHOLDER", "#IDK"};
+	
 	
 	/**
 	 * without any options, the default SaveManager will be using 
-	 * emmasave.txt as the main file and emmasave_template.txt as the template file
+	 * emmasave.txt as the main file and emmasave_template.txt as the template file.
+	 * If the save is empty or blank on boot, it will create a new one and fill it from a template.
 	 */
 	public SaveManager() {
-		//if i add more sections, add more here.
-		//headerNames.add("#PLAYERNAME");
-		//headerNames.add("#INVENTORY");
-		//headerNames.add("#PLACEHOLDER");
-		//headerNames.add("#IDK");
+		storeSave();
+		storeTemplate();
+		if(fullSave.isBlank()) {
+			resetSave();
+		}
+		storeHeaderNames();
 	}
 	
 	/**
@@ -42,25 +47,89 @@ public class SaveManager {
 	 * @param constrTempName the name of the template file 
 	 */
 	public SaveManager(String constrFileName, String constrTempName) {
-		headerNames.add("#PLAYERNAME");
-		headerNames.add("#INVENTORY");
-		headerNames.add("#PLACEHOLDER");
-		headerNames.add("#IDK");
 		fileName = constrFileName;
 		templateName = constrTempName;
+		storeSave();
+		storeTemplate();
+		if(fullSave.isBlank()) {
+			resetSave();
+		}
+		storeHeaderNames();
 	}
 	
 	
+
 	/**
-	 * @param text this is the text that you would like to insert into the save
-	 * @param section this is the index of the target section
+	 * This method allows you to add items into a section.
+	 * unfortunately this means that i may have to store the player name as an item lmao
+	 * @param section - this is the target section you're trying to add to
+	 * @param name - this is the name of the item you want to add
+	 * @param amount - this is the amount of the item you want to add. Set to -1 if you don't want a quantity at all.
 	 */
-	public void addItem(String text, int section) {
+	public void addItem(int section, String name, int amount) {
 		//create a buffer that we can modify
 		StringBuilder textBuffer = new StringBuilder();		
-		//first, we need to update the contents of fullSave
+		//first, we need to update the contents of fullSave, and load them into our buffer
+		//thanks to the constructor header names/numbers should already be stored.
 		storeSave();
-		
+		textBuffer.append(fullSave);
+		//select the proper section
+		selectSection(section);
+		System.out.println(headerNames.get(section) + ": " + selectedContents.toString());
+		//add the wanted item to the list. if -1, don't add amount.
+		if(amount == -1) {
+			selectedContents.add(name);
+		} else {
+			selectedContents.add((name + ":" + amount));
+		}
+		System.out.println(selectedContents.toString());
+		//put the modified selected list into a string
+		StringBuilder hold = new StringBuilder();
+		//add this first one so the item doesn't end up on the same line as the header
+		hold.append(System.lineSeparator());
+		for(int i = 0; i < selectedContents.size(); i++) {
+			hold.append(selectedContents.get(i) + System.lineSeparator());
+		}
+		//add one last line separator
+		hold.append(System.lineSeparator());
+		//replace the part of the text the section is from
+		textBuffer.replace(headerPos.get(section) + (headerNames.get(section).length()),
+				headerPos.get(section + 1), 
+				hold.toString());
+		System.out.println(textBuffer.toString());
+		//push through to save file
+		updateSaveFile(textBuffer);
+	}	
+	/**
+	 * @param section - target section to add to
+	 * @param name - name to add
+	 * if you don't put an amount, this will make it not add a number after the entry.
+	 */
+	public void addItem(int section, String name) {
+		addItem(section, name, -1);
+	}
+	
+	//this replaces a target section with nothing!!! is this lazy or good practice lol
+	public void clearSection(int section) {
+		String empty = System.lineSeparator() + System.lineSeparator();
+		storeSave();
+		StringBuilder textBuffer = new StringBuilder();
+		textBuffer.append(fullSave);
+		textBuffer = replaceSection(section, empty, textBuffer);
+		updateSaveFile(textBuffer);
+	}
+	
+	/** 
+	 * @param section - section you want replaced
+	 * @param contents - string you want it replaced with
+	 * @param buffer - the target StringBuilder you're replacing the text inside
+	 */
+	public StringBuilder replaceSection(int section, String contents, StringBuilder buffer) {
+		buffer.replace((headerPos.get(section) + (headerNames.get(section).length())),
+				headerPos.get(section + 1), 
+				contents);
+		System.out.println(buffer.toString());
+		return buffer;
 	}
 	
 	//makes the content of the txt be the desired text
@@ -76,8 +145,14 @@ public class SaveManager {
 			e.printStackTrace();
 		}
 	}
+	//you can even do it with a string builder if u want !! fuck buffer.toString()
+	public void updateSaveFile(StringBuilder desText) {
+		updateSaveFile(desText.toString());
+	}
 	
 	//everything above this is gonna be about writing to the file
+	
+	
 	
 	/**
 	 * this finds and records the name of each header
@@ -105,22 +180,18 @@ public class SaveManager {
 				System.out.println("moving " + tillNext);
 			}
 			//the actual loop that moves the scanner
-			for(int in = 0; in < tillNext; in++) {
+			SillyTools.moveScanner(hFinder, tillNext);
+		/*	for(int in = 0; in < tillNext; in++) {
 				System.out.print(in);
 				hFinder.next();
-			}
-			
-			//once the scanner is there, it reads the next line
-			headerNames.add(hFinder.nextLine());
-			
-		}
-		
+			}			
+	*/		//once the scanner is there, it reads the next line
+			headerNames.add(hFinder.nextLine());			
+		}		
 		if(moreInfo) {
 			System.out.println(headerNames.toString());
-		}
-		
-		hFinder.close();
-		
+		}		
+		hFinder.close();		
 	}
 	
 	//this reads the position of the headers, and stores them internally
@@ -139,8 +210,7 @@ public class SaveManager {
 		storeSave();
 		Scanner findName = new Scanner(fullSave);
 		List<String> contents = new ArrayList<String>();
-		String currentLine;
-		
+		String currentLine;		
 		//brings the scanner to the appropriate section
 		findName.findWithinHorizon(headerNames.get(sectionNumber), 0);
 		//skips the section name itself (not sure if needed)
@@ -148,14 +218,13 @@ public class SaveManager {
 		//the while loop updates currentLine, checks if it's empty, and continues if it is not
 		while(!(currentLine = findName.nextLine()).isEmpty()) {
 			contents.add(currentLine);
-		}
-		
+		}		
 		//close scanner
 		findName.close();
 		return contents;	
 	}
 	
-	//getters and setters yay
+	//do these count as getters and setters
 	public int getHeaderAmount() {
 		return headerNames.size();
 	}
@@ -164,15 +233,25 @@ public class SaveManager {
 		return readSection(0).toString();
 		
 	}
+	public void selectSection(int sectionNumber) {
+		selectedHeader = sectionNumber;
+		selectedContents = readSection(sectionNumber);
+	}
+	public String getPlayerName() {
+		if(readSection(0).isEmpty()) {
+			return "empty";
+		}
+		return readSection(0).get(0);
+	}
 	
 	//-------------------- everything above this is gonna be about reading the file, below is basic file management ig?
 	
 	//if there is an existing save, gives the user a yes/no prompt. If yes/there is no save, creates a new one from the template
 	public boolean resetSave() {
-		File targetSave = new File(fileName);
 		Scanner yn = new Scanner(System.in);
+		storeSave();
 		//checking for an existing save
-		if(targetSave.exists()) {
+		if(fullSave.isBlank() != true) {
 			System.out.println("You have an existing save file. Delete it?");
 			if(SillyTools.askYorN(yn)) {
 				deleteSave(fileName);
@@ -195,13 +274,13 @@ public class SaveManager {
 	}
 	
 	//replaces the contents of target file with the contents of the string
-	public void fillFromString(String temp) {
-		storeTemplate();
+	public void fillFromString(String newInfo) {
+
 		try(BufferedWriter tempWriter = new BufferedWriter(new FileWriter(fileName)) ){			
-			tempWriter.write(temp);
+			tempWriter.write(newInfo);
 			storeSave();
-			if(moreInfo) {				
-				System.out.println("save file filled with content of " + templateName);
+			if(moreInfo) {
+				System.out.println(fileName + " filled with the contents of given string");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

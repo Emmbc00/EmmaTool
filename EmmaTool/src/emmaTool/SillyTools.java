@@ -9,6 +9,26 @@ import java.util.Scanner;
  */
 public class SillyTools {
 
+	
+	
+	
+	
+	/**
+	 * @param s - scanner to be moved
+	 * @param distance - total amount of characters the scanner will be moved
+	 */
+	public static void moveScanner(Scanner s, int distance) {
+		//set delimiter to nothing, so it scans one character at a time
+		s.useDelimiter("");
+		//move scanner chosen distance
+		for(int i = 0; i < distance; i++) {
+			s.next();
+		}
+		
+	}
+	
+	
+	
 	//this returns a list with each entry being the location of the target char within the string
 	public static List<Integer> locateChars(char tc, String ts) {
 		List<Integer> characterLocations = new ArrayList<Integer>();
