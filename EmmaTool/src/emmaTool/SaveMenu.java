@@ -45,15 +45,19 @@ public class SaveMenu {
 				System.out.println(emmaSave.getContents());
 				break;
 			case 5:
-				emmaSave.updateTemplate();
+				emmaSave.storeTemplate();
 				System.out.println(emmaSave.getTemplateName());
 				System.out.println(emmaSave.getTemplate());
 				break;
 			case 6:
-				emmaSave.deleteSave(emmaSave.fileName);
+				
+				emmaSave.storeHeaderNames();
+				
 				break;
 			case 7:
-				emmaSave.changeName("emma 2");
+				emmaSave.storeHeaderPositions();
+				System.out.println(emmaSave.headerPos.toString());
+				
 				break;
 			case 99:
 				System.out.println("goodbye");
@@ -73,8 +77,8 @@ public class SaveMenu {
 		System.out.println("3. View the contents of a save file section");
 		System.out.println("4. Read Save");
 		System.out.println("5. Read Template");
-		System.out.println("6. Delete Save");
-		System.out.println("7. debug");
+		System.out.println("6. debug");
+		System.out.println("7. debug 2");
 		System.out.println("99. Exit");
 		
 	}

@@ -14,34 +14,52 @@ import java.io.FileWriter;
 
 public class SaveManager {
 
-	String fileName = "emmasave.txt";
-	String templateName = "emmasave_template.txt";
-	String fullSave;
-	String template;
-	boolean moreInfo = true;
-	List<String> headerNames = new ArrayList<String>();
+	char HEADER_KEY = '#';// this is the character that signifies the beginning of the header
+	String fileName = "emmasave.txt"; //name of the target file
+	String templateName = "emmasave_template.txt"; //name of the template
+	String fullSave; //this string will hold all of the text that was in the target file
+	String template; // this string holds the text of the template file
+	boolean moreInfo = true; //because why not, toggle if u want the console to spam you with info or not (kinda useless)
+	List<String> headerNames = new ArrayList<String>(); //this holds the names of each header
+	List<Integer> headerPos = new ArrayList<Integer>();
 	
 	//{"#PLAYERNAME", "#MATERIALS", "#PLACEHOLDER", "#IDK"};
 	
+	/**
+	 * without any options, the default SaveManager will be using 
+	 * emmasave.txt as the main file and emmasave_template.txt as the template file
+	 */
 	public SaveManager() {
 		//if i add more sections, add more here.
+		//headerNames.add("#PLAYERNAME");
+		//headerNames.add("#INVENTORY");
+		//headerNames.add("#PLACEHOLDER");
+		//headerNames.add("#IDK");
+	}
+	
+	/**
+	 * @param constrFileName the name of the main file
+	 * @param constrTempName the name of the template file 
+	 */
+	public SaveManager(String constrFileName, String constrTempName) {
 		headerNames.add("#PLAYERNAME");
 		headerNames.add("#INVENTORY");
 		headerNames.add("#PLACEHOLDER");
 		headerNames.add("#IDK");
+		fileName = constrFileName;
+		templateName = constrTempName;
 	}
 	
 	
-	// don't like this, need to make add to section and remove from section methods instead
-	public void changeName(String newName) { 
-		StringBuilder textBuffer = new StringBuilder();
-		textBuffer.append(fullSave);
-		String oldName = readSection(0).get(0);
-		System.out.println("old name is " + oldName);
-		fullSave.replace(oldName, newName);
-		System.out.println("new name is " + newName);
-		System.out.println(fullSave);
-		updateSaveFile(fullSave);
+	/**
+	 * @param text this is the text that you would like to insert into the save
+	 * @param section this is the index of the target section
+	 */
+	public void addItem(String text, int section) {
+		//create a buffer that we can modify
+		StringBuilder textBuffer = new StringBuilder();		
+		//first, we need to update the contents of fullSave
+		storeSave();
 		
 	}
 	
@@ -60,6 +78,52 @@ public class SaveManager {
 	}
 	
 	//everything above this is gonna be about writing to the file
+	
+	public void storeHeaderNames(){
+		//first, make sure we have the correct position numbers
+		storeHeaderPositions();
+		Scanner hFinder = new Scanner(fullSave);
+		
+		//i'm going to assume the first category will always be at 0
+		headerNames.add(hFinder.nextLine());
+		// this is going to loop the number of times there are headers (minus 1 for zero)
+		for(int i = 0; i < headerPos.size() - 1; i++) {
+			System.out.println("pass " + i);
+			//this sets the scanner to advance one char at a time
+			hFinder.useDelimiter("");
+			System.out.println("target " + headerPos.get(i+1));
+
+			//this skips the last name entered, + 2 for each new line char? i think?
+			int skippedChars = 0;
+			System.out.println("headerNames size " + headerNames.size());
+			skippedChars = (headerNames.get(i).length()) + 2;
+			System.out.println("Skipped = " + skippedChars);
+			//this figures out how far to move the scanner
+			int tillNext = (headerPos.get(i + 1) - headerPos.get(i) - skippedChars);
+			System.out.println("moving " + tillNext);
+			
+			//the actual loop that moves the scanner
+			for(int in = 0; in < tillNext; in++) {
+				System.out.print(in);
+				hFinder.next();
+			}
+			
+			//once the scanner is there, it reads the next line
+			headerNames.add(hFinder.nextLine());
+			
+			System.out.println(headerNames.toString());
+		}
+		hFinder.close();
+		
+	}
+	
+	//this reads the position of the headers, and stores them internally
+	public void storeHeaderPositions() {
+		storeSave();				
+		headerPos = SillyTools.locateChars(HEADER_KEY, fullSave);		
+		
+	}
+	
 	
 	/**
 	 * @param int sectionNumber - the number of the desired category within headerNames
@@ -118,16 +182,17 @@ public class SaveManager {
 		System.out.println("Creating save file named " + fileName);
 		createSave();
 		System.out.println("Filling it with data from a file named " + templateName);
-		fillFromTemplate();
+		storeTemplate();
+		fillFromString(template);
 		
 		return true;
 	}
 	
-	//replaces the contents of target file with the contents of the template
-	public void fillFromTemplate() {
-		updateTemplate();
+	//replaces the contents of target file with the contents of the string
+	public void fillFromString(String temp) {
+		storeTemplate();
 		try(BufferedWriter tempWriter = new BufferedWriter(new FileWriter(fileName)) ){			
-			tempWriter.write(template);
+			tempWriter.write(temp);
 			storeSave();
 			if(moreInfo) {				
 				System.out.println("save file filled with content of " + templateName);
@@ -191,17 +256,17 @@ public class SaveManager {
 	/**
 	 * This reads the template file, and syncs it with the internal template
 	 */
-	public void updateTemplate() {
+	public void storeTemplate() {
 		try(BufferedReader bufferedTemplate = new BufferedReader(new FileReader(templateName))){
 			StringBuilder tempSave = new StringBuilder();
 			String line = bufferedTemplate.readLine();
-			
+			//this iterates through each line of the template, and adds them to the StringBuilder
 			while (line != null) {
 				tempSave.append(line);
 				tempSave.append(System.lineSeparator());
 				line = bufferedTemplate.readLine();
 			}
-			
+			//the StringBuilder is saved as a string
 			template = tempSave.toString();
 			if(moreInfo = true) {
 				System.out.println("template saved from template file named " + templateName);

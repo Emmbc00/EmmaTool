@@ -1,8 +1,8 @@
 #PLAYERNAME
-Emma Wells
+
 
 #INVENTORY
-30 Iron
+
 
 
 #PLACEHOLDER
@@ -10,3 +10,5 @@ Emma Wells
 
 
 #IDK
+
+#TEST

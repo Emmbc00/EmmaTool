@@ -1,4 +1,5 @@
 package emmaTool;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -8,6 +9,22 @@ import java.util.Scanner;
  */
 public class SillyTools {
 
+	//this returns a list with each entry being the location of the target char within the string
+	public static List<Integer> locateChars(char tc, String ts) {
+		List<Integer> characterLocations = new ArrayList<Integer>();
+		char current;
+		//loops until there are no more characters in the String
+		for(int i = 0; i < ts.length(); i++) {
+			current = ts.charAt(i);
+			//if the current char is the target char, add the index to the location list
+			if(current == tc) {
+				characterLocations.add(i);
+			}			
+		}
+		//return the finished list 
+		return characterLocations;
+		
+	}
 	
 	
 	//prints the contents of an array
