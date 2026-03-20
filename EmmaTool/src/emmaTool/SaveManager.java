@@ -79,29 +79,31 @@ public class SaveManager {
 	
 	//everything above this is gonna be about writing to the file
 	
+	/**
+	 * this finds and records the name of each header
+	 */
 	public void storeHeaderNames(){
 		//first, make sure we have the correct position numbers
 		storeHeaderPositions();
-		Scanner hFinder = new Scanner(fullSave);
-		
+		Scanner hFinder = new Scanner(fullSave);		
 		//i'm going to assume the first category will always be at 0
-		headerNames.add(hFinder.nextLine());
+		headerNames.add(hFinder.nextLine());		
 		// this is going to loop the number of times there are headers (minus 1 for zero)
-		for(int i = 0; i < headerPos.size() - 1; i++) {
-			System.out.println("pass " + i);
+		for(int i = 0; i < headerPos.size() - 1; i++) {			
 			//this sets the scanner to advance one char at a time
 			hFinder.useDelimiter("");
-			System.out.println("target " + headerPos.get(i+1));
-
+			if(moreInfo) {
+				System.out.println("target " + headerPos.get(i+1));
+			}
 			//this skips the last name entered, + 2 for each new line char? i think?
 			int skippedChars = 0;
-			System.out.println("headerNames size " + headerNames.size());
 			skippedChars = (headerNames.get(i).length()) + 2;
-			System.out.println("Skipped = " + skippedChars);
+			
 			//this figures out how far to move the scanner
 			int tillNext = (headerPos.get(i + 1) - headerPos.get(i) - skippedChars);
-			System.out.println("moving " + tillNext);
-			
+			if(moreInfo) {
+				System.out.println("moving " + tillNext);
+			}
 			//the actual loop that moves the scanner
 			for(int in = 0; in < tillNext; in++) {
 				System.out.print(in);
@@ -111,8 +113,12 @@ public class SaveManager {
 			//once the scanner is there, it reads the next line
 			headerNames.add(hFinder.nextLine());
 			
+		}
+		
+		if(moreInfo) {
 			System.out.println(headerNames.toString());
 		}
+		
 		hFinder.close();
 		
 	}
