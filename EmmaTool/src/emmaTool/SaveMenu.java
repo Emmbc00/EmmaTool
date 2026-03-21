@@ -32,13 +32,14 @@ public class SaveMenu {
 			case 3: // return contents of section
 				
 				System.out.println("current options are: ");
-				SillyTools.printStrList(emmaSave.headerNames);
+				System.out.println(SillyTools.listToString(emmaSave.headerNames, true));
+				
 				int sectionChoice = SillyTools.askForNumber(userInput, emmaSave.getHeaderAmount() - 1);
-				SillyTools.printStrList(emmaSave.readSection(sectionChoice - 1));
+				System.out.println(SillyTools.listToString(emmaSave.readSection(sectionChoice -1), true));
 				
 				break;
 			case 4: //read save
-				emmaSave.storeSave();
+				emmaSave.storeFromFile();
 				System.out.println(emmaSave.getFileName());
 				System.out.println(emmaSave.getContents());
 				break;
@@ -49,15 +50,16 @@ public class SaveMenu {
 				break;
 			case 6:
 				
-				emmaSave.addItem(1, "copper", 10);
+				emmaSave.clearSection(0);
+				System.out.println(emmaSave.masterlistToString(emmaSave.masterList));
 				
 				break;
 			case 7:
-				emmaSave.addItem(0, "emma");
+				
 				
 				break;
-			case 8:			// THIS DOESN"T WORK for some reason but im gonna sleep	
-				changeName(emmaSave, userInput);				
+			case 8:				
+								
 				break;
 			case 99:
 				System.out.println("goodbye");
@@ -84,34 +86,6 @@ public class SaveMenu {
 		
 	}
 
-	public static void changeName(SaveManager m, Scanner s) {
-		//get old name
-		String tempName = m.getPlayerName();
-		boolean ch = true;
-		//get permissions
-		if(tempName.isBlank()) {
-			System.out.println("No previous name found.");
-		} else {
-			System.out.println("Your current name is " + tempName + ". Would you like to change it?");
-			if(!(SillyTools.askYorN(s))) {
-				ch = false;
-			}
-		}
-		//actually do it 
-		if(ch) {
-			m.clearSection(0);
-			
-			System.out.print("Enter new name: ");
-			tempName = s.nextLine();
-			System.out.println();
-			m.addItem(0, tempName);
-			System.out.println("New name is " + m.getPlayerName());
-			
-		} else {
-			System.out.println("You decided not to change your name.");
-		}
-		
-		
-	}
+	
 	
 }

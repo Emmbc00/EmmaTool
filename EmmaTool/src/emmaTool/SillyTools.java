@@ -47,20 +47,42 @@ public class SillyTools {
 	}
 	
 	
-	//prints the contents of an array
-	public static void printStrList(List<String> stringList) {
+	
+	/**
+	 * @param stringList - the ArrayList of strings you wish to convert to a single string, with each entry separated by a line break
+	 * @param numbered - do you want the list to be numbered (good for printing options)
+	 * @return - the list as a String, with a line break between each entry
+	 */
+	public static String listToString(ArrayList<String> stringList, boolean numbered) {
+		//create a StringBuilder 
+		StringBuilder st = new StringBuilder();
 		//give an error if the array you are trying to print has a length of 0
 		if(stringList.size() != 0) {
 			//iterates through array, prints each
 			for(int i = 0; i < stringList.size();i++) {
-				System.out.println(i + 1 + ". " + stringList.get(i));
+				if(numbered) {
+					st.append((i + 1) + ". ");
+				}
+				st.append(stringList.get(i));
+				st.append(System.lineSeparator());
 			}
+
+			return(st.toString());
 			
 		} else {
-			System.out.println("the list you attempted to read has a size of 0");
+			System.out.println("the list you attempted to convert has a size of 0");
+			return "";
 		}
 		
 	}
+	public static String listToString(ArrayList<String> stLst) {
+		return listToString(stLst, false);
+	}
+	
+
+	
+	
+	
 	
 	//inverts a boolean. idk if i can do this some other way easily??
 	public static boolean invert(boolean invBool) {
@@ -76,6 +98,7 @@ public class SillyTools {
 		}
 		
 	}
+	
 	
 	//This prompts the user with a yes or no, and returns a boolean.
 	public static boolean askYorN(Scanner userInput) {
