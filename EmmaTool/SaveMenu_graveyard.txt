@@ -1,0 +1,128 @@
+	this is code that i spent a long ass time writing that i dont need but don't want to just deletes
+	
+	
+	/**
+	 * This method allows you to add items into a section.
+	 * unfortunately this means that i may have to store the player name as an item lmao
+	 * @param section - this is the target section you're trying to add to
+	 * @param name - this is the name of the item you want to add
+	 * @param amount - this is the amount of the item you want to add. Set to -1 if you don't want a quantity at all.
+	 */
+	public void addItem(int section, String name, int amount) {
+		//create a buffer that we can modify
+		StringBuilder textBuffer = new StringBuilder();		
+		//first, we need to update the contents of fullSave, and load them into our buffer
+		//thanks to the constructor header names/numbers should already be stored.
+		storeSave();
+		textBuffer.append(fullSave);
+		//select the proper section
+		selectSection(section);
+		System.out.println(headerNames.get(section) + ": " + selectedContents.toString());
+		//add the wanted item to the list. if -1, don't add amount.
+		if(amount == -1) {
+			selectedContents.add(name);
+		} else {
+			selectedContents.add((name + ":" + amount));
+		}
+		System.out.println(selectedContents.toString());
+		//put the modified selected list into a string
+		StringBuilder hold = new StringBuilder();
+		//add this first one so the item doesn't end up on the same line as the header
+		hold.append(System.lineSeparator());
+		for(int i = 0; i < selectedContents.size(); i++) {
+			hold.append(selectedContents.get(i) + System.lineSeparator());
+		}
+		//add one last line separator
+		hold.append(System.lineSeparator());
+		//replace the part of the text the section is from
+		textBuffer.replace(headerPos.get(section) + (headerNames.get(section).length()),
+				headerPos.get(section + 1), 
+				hold.toString());
+		System.out.println(textBuffer.toString());
+		//push through to save file
+		updateSaveFile(textBuffer);
+	}	
+	/**
+	 * @param section - target section to add to
+	 * @param name - name to add
+	 * if you don't put an amount, this will make it not add a number after the entry.
+	 */
+	public void addItem(int section, String name) {
+		addItem(section, name, -1);
+	}
+	
+	
+	
+	public static void changeName(SaveManager m, Scanner s) {
+		//get old name
+		String tempName = m.getPlayerName();
+		boolean ch = true;
+		//get permissions
+		if(tempName.isBlank()) {
+			System.out.println("No previous name found.");
+		} else {
+			System.out.println("Your current name is " + tempName + ". Would you like to change it?");
+			if(!(SillyTools.askYorN(s))) {
+				ch = false;
+			}
+		}
+		//actually do it 
+		if(ch) {
+			m.clearSection(0);
+			
+			System.out.print("Enter new name: ");
+			tempName = s.nextLine();
+			System.out.println();
+			m.addItem(0, tempName);
+			System.out.println("New name is " + m.getPlayerName());
+			
+		} else {
+			System.out.println("You decided not to change your name.");
+		}
+		
+		
+	}
+	
+	
+	
+	/**
+	 * this finds and records the name of each header
+	 */
+	public void storeHeaderNames(){
+		//first, make sure we have the correct position numbers
+		storeHeaderPositions();
+		Scanner hFinder = new Scanner(fullSave);		
+		//i'm going to assume the first category will always be at 0
+		headerNames.add(hFinder.nextLine());		
+		// this is going to loop the number of times there are headers (minus 1 for zero)
+		for(int i = 0; i < headerPos.size() - 1; i++) {			
+			//this sets the scanner to advance one char at a time
+			hFinder.useDelimiter("");
+			if(moreInfo) {
+				System.out.println("target " + headerPos.get(i+1));
+			}
+			//this skips the last name entered, + 2 for each new line char? i think?
+			int skippedChars = 0;
+			skippedChars = (headerNames.get(i).length()) + 2;
+			
+			//this figures out how far to move the scanner
+			int tillNext = (headerPos.get(i + 1) - headerPos.get(i) - skippedChars);
+			if(moreInfo) {
+				System.out.println("moving " + tillNext);
+			}
+			//the actual loop that moves the scanner
+			SillyTools.moveScanner(hFinder, tillNext);
+		/*	for(int in = 0; in < tillNext; in++) {
+				System.out.print(in);
+				hFinder.next();
+			}			
+	*/		//once the scanner is there, it reads the next line
+			headerNames.add(hFinder.nextLine());			
+		}		
+		if(moreInfo) {
+			System.out.println(headerNames.toString());
+		}		
+		hFinder.close();		
+	}
+	
+	
